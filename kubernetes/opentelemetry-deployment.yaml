@@ -1,0 +1,38 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: simplest
+spec:
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    processors:
+      batch:
+      filter:
+        metrics:
+          exclude:
+            match_type: strict
+            metric_names:
+              - queueSize
+      # Please replace with a valid processor. For example, spanmetrics
+      spanmetrics: 
+
+    exporters:
+      otlphttp/dynatrace:
+        endpoint: "${DT_OTLP_ENDPOINT}" 
+        headers: 
+          Authorization: "Api-Token ${DT_API_TOKEN}"
+          
+    service: 
+      pipelines: 
+        traces: 
+          receivers: [otlp] 
+          processors: [batch, spanmetrics] 
+          exporters: [otlphttp/dynatrace] 
+        metrics: 
+          receivers: [otlp] 
+          processors: [batch, filter] 
+          exporters: [otlphttp/dynatrace]
